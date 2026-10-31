@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Preconnect untuk mempercepat loading gambar terkompresi -->
+    <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+    <link rel="dns-prefetch" href="https://wsrv.nl">
+    <link rel="preconnect" href="https://i.ibb.co.com">
+    <link rel="dns-prefetch" href="https://i.ibb.co.com">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -55,7 +60,7 @@
         .lang-toggle { background: var(--brown-wood); border: none; color: white; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-weight: 600; font-family: inherit; transition: 0.2s; }
         .lang-toggle:hover { background: var(--terracotta); }
 
-        .hero { position: relative; min-height: 85vh; display: flex; align-items: center; text-align: center; color: white; background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .hero { position: relative; min-height: 85vh; display: flex; align-items: center; text-align: center; color: white; background-size: cover; background-position: center; background-repeat: no-repeat; background-color: #5A3E2B; }
         .hero::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(90, 62, 43, 0.1); z-index: 1; }
         .hero-content { position: relative; z-index: 2; width: 100%; }
         .hero-content h1 { font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); }
@@ -76,9 +81,29 @@
         .cat-btn.active, .cat-btn:hover { background: var(--brown-wood); color: white; }
 
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; margin-top: 20px; }
-        .menu-card { background: white; border-radius: 28px; overflow: hidden; box-shadow: 0 8px 20px var(--shadow); transition: all 0.3s ease; }
+
+        /* MENU CARD — content-visibility untuk skip rendering off-screen cards */
+        .menu-card {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px var(--shadow);
+            transition: all 0.3s ease;
+            content-visibility: auto;
+            contain-intrinsic-size: 320px 350px;
+        }
         .menu-card:hover { transform: translateY(-8px); box-shadow: 0 18px 30px rgba(0,0,0,0.12); }
-        .menu-card img { width: 100%; height: 200px; object-fit: cover; background-color: #f0e6d6; display: block; }
+
+        /* IMG — aspect-ratio untuk cegah layout shift + blur placeholder */
+        .menu-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f5ede2 0%, #e9dccc 100%);
+            display: block;
+            aspect-ratio: 10 / 7;
+        }
+
         .card-content { padding: 18px; }
         .menu-name { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
         .menu-desc { font-size: 0.85rem; color: #6b4c34; margin: 8px 0; line-height: 1.4; }
@@ -229,7 +254,6 @@
                     <h3><i class="fas fa-clock info-icon"></i> <span data-i18n="hours_title">Jam Buka</span></h3>
                     <div class="hours">
                         <p><strong><i class="fas fa-calendar-week info-icon"></i> Weekdays (Senin-Jum'at)</strong><br> 07.00 AM - 22.00 PM</p>
-                        <!-- BUG FIXED: fa-calendar-weekend -> fa-calendar-day -->
                         <p><strong><i class="fas fa-calendar-day info-icon"></i> Weekend (Sabtu-Minggu)</strong><br> 07.00 AM - 21.00 PM</p>
                         <hr style="margin: 15px 0; border-color: #e0cdb5;">
                         <p><strong><i class="fas fa-map-marker-alt info-icon"></i> <span data-i18n="location_title">Alamat</span></strong><br>
@@ -261,8 +285,47 @@
 <div id="toastMsg" class="toast-msg"></div>
 
 <script>
-    const headerBackgroundImage = 'https://i.ibb.co.com/DHQTS4BZ/PMGB.png';
-    
+    // =========================================================================
+    // KONFIGURASI GAMBAR HEADER
+    // Gambar asli akan otomatis dikompres via wsrv.nl (WebP, quality 78, width 1280)
+    // =========================================================================
+    const headerBackgroundImageRaw = 'https://i.ibb.co.com/DHQTS4BZ/PMGB.png';
+
+    // =========================================================================
+    // FUNGSI OPTIMASI GAMBAR — Kompres via CDN wsrv.nl (resize + WebP + quality)
+    // =========================================================================
+    const IMAGE_CDN = 'https://wsrv.nl/';
+    const MENU_IMG_WIDTH  = 400;   // px — cukup tajam untuk card 280-350px
+    const MENU_IMG_QUALITY = 70;   // 70 = keseimbangan tajam vs ukuran
+    const HERO_IMG_WIDTH  = 1280;  // px — untuk background full width
+    const HERO_IMG_QUALITY = 78;
+
+    function buildOptimizedUrl(url, width, quality) {
+        if (!url) return '';
+        if (url.startsWith('data:')) return url;
+
+        // Konversi Google Drive → direct image URL dulu
+        let sourceUrl = url;
+        if (sourceUrl.includes('drive.google.com')) {
+            sourceUrl = convertGoogleDriveLink(sourceUrl);
+        }
+
+        // Lewati proxy jika sudah pernah di-proxy
+        if (sourceUrl.includes('wsrv.nl')) return sourceUrl;
+
+        const cleanSource = sourceUrl.replace(/^https?:\/\//, '');
+        const height = Math.round(width * 0.7);
+        return `${IMAGE_CDN}?url=${encodeURIComponent(cleanSource)}&w=${width}&h=${height}&fit=cover&output=webp&q=${quality}&il`;
+    }
+
+    function optimizeMenuImage(url) {
+        return buildOptimizedUrl(url, MENU_IMG_WIDTH, MENU_IMG_QUALITY);
+    }
+
+    function optimizeHeroImage(url) {
+        return buildOptimizedUrl(url, HERO_IMG_WIDTH, HERO_IMG_QUALITY);
+    }
+
     function convertGoogleDriveLink(url) {
         if (!url || url === "") return "";
         if (url.includes('drive.google.com')) {
@@ -278,15 +341,25 @@
         return url;
     }
 
+    // onerror: fallback 1x ke URL asli, lalu placeholder jika masih gagal
     function handleImageError(img) {
+        const originalUrl = img.getAttribute('data-original');
+        if (originalUrl && !img.dataset.triedOriginal) {
+            img.dataset.triedOriginal = 'true';
+            img.src = originalUrl;
+            return;
+        }
         img.style.display = 'none';
         const parent = img.parentElement;
         const placeholder = document.createElement('div');
-        placeholder.style.cssText = 'width:100%;height:200px;background:#f5ede2;display:flex;align-items:center;justify-content:center;color:#c17a4b;font-size:14px;';
-        placeholder.innerHTML = '<i class="fas fa-image" style="font-size:40px;opacity:0.5"></i><br><span style="font-size:12px">Gambar tidak tersedia</span>';
+        placeholder.style.cssText = 'width:100%;height:200px;background:#f5ede2;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#c17a4b;font-size:14px;';
+        placeholder.innerHTML = '<i class="fas fa-image" style="font-size:40px;opacity:0.5"></i><span style="font-size:12px;margin-top:6px">Gambar tidak tersedia</span>';
         if (parent && img.parentNode) img.parentNode.replaceChild(placeholder, img);
     }
 
+    // =========================================================================
+    // DATA MENU LENGKAP BILINGUAL
+    // =========================================================================
     const menuItemsRaw = [
         // WEDANGAN
         { id: 1, name_id: "Wedang Mbah Gito", name_en: "Wedang Mbah Gito", desc_id: "Jeruk nipis, jeruk peras, jahe, sereh, cengkeh, kapulaga, kolang-kaling, kayu manis, gula batu & gula aren", desc_en: "Lime, orange, ginger, lemongrass, cloves, cardamom, palm fruit, cinnamon, rock sugar & palm sugar", price: 25000, category: "wedangan", img: "https://i.ibb.co.com/Q7FKdVj2/Minuman-Herbal-Jeruk-Sereh-Rustic-Celestial.png" },
@@ -301,7 +374,7 @@
         { id: 10, name_id: "Jeruk Ndeso", name_en: "Jeruk Ndeso", desc_id: "Jeruk peras kuning segar (Es / Panas)", desc_en: "Fresh orange juice (Iced / Hot)", price: 13000, category: "wedangan", img: "https://i.ibb.co.com/KzmRZw10/Jeruk-Ndeso.png" },
         { id: 11, name_id: "Jeruk Nipis Ndeso", name_en: "Jeruk Nipis Ndeso", desc_id: "Jeruk nipis asli (Es / Panas)", desc_en: "Fresh lime juice (Iced / Hot)", price: 13000, category: "wedangan", img: "https://i.ibb.co.com/MkbhZVcZ/Jeruk-Nipis-Ndeso.png" },
         { id: 12, name_id: "Kunyit Latte", name_en: "Kunyit Latte", desc_id: "Kunyit segar berbalut dengan Susu Murni (Es / Panas)", desc_en: "Fresh Turmeric And Fresh Milk (Iced / Hot)", price: 33000, category: "wedangan", img: "https://i.ibb.co.com/pj7WDD6P/Kunyit.png" },
-        
+
         // KOPI & TEH
         { id: 13, name_id: "Teh Ndeso", name_en: "Teh Ndeso", desc_id: "Teh dan jeruk nipis (Panas 11k / Es 10k)", desc_en: "Tea with lime (Hot 11k / Iced 10k)", price: 11000, category: "kopi-teh", img: "https://i.ibb.co.com/Df0Fc9P6/Teh-Ndeso.png" },
         { id: 14, name_id: "Teh Tubruk", name_en: "Teh Tubruk", desc_id: "Teh kampung asli", desc_en: "Authentic local tea", price: 15000, category: "kopi-teh", img: "https://i.ibb.co.com/HTV4jWZj/Teh-Tubruk.png" },
@@ -310,7 +383,6 @@
         { id: 17, name_id: "Teh Jahe Sereh", name_en: "Teh Jahe Sereh", desc_id: "Teh jahe & sereh hangat", desc_en: "Warm ginger lemongrass tea", price: 17000, category: "kopi-teh", img: "https://i.ibb.co.com/YFYLR5qK/Teh-Jahe-Sereh.png" },
         { id: 18, name_id: "Teh Tarik", name_en: "Teh Tarik", desc_id: "Teh tarik panas / es", desc_en: "Pulled tea hot / iced", price: 22000, category: "kopi-teh", img: "https://i.ibb.co.com/bjB5JT7x/Teh-Tarik.png" },
         { id: 19, name_id: "Teh Kamplung", name_en: "Teh Kamplung", desc_id: "Teh dan Jeruk Nipis (Panas 13k / Es 12k)", desc_en: "Tea with lime (Hot 13k / Iced 12k)", price: 12000, category: "kopi-teh", img: "https://i.ibb.co.com/ccVP16Cz/Kamplung.png" },
-        // BUG FIXED: tambahkan "}," penutup objek id:20 (sebelumnya hilang → syntax error)
         { id: 20, name_id: "Kopi Ndeso", name_en: "Kopi Ndeso", desc_id: "Kopi tubruk, gula batu/gula cair (Es)", desc_en: "Traditional tubruk coffee, rock sugar/liquid sugar (Iced)", price: 19000, category: "kopi-teh", img: "https://i.ibb.co.com/5gyL3vY4/Kopi-Ndeso.png" },
         { id: 21, name_id: "Kopi Susu Mbah Gito", name_en: "Kopi Susu Mbah Gito", desc_id: "Kopi tubruk, SKM, gula aren", desc_en: "Tubruk coffee, condensed milk, palm sugar", price: 20000, category: "kopi-teh", img: "https://i.ibb.co.com/8LsGKrxB/Kopi-Susu-Mbah-Gito.png" },
         { id: 22, name_id: "Kopi Susu Ndeso", name_en: "Kopi Susu Ndeso", desc_id: "Kopi tubruk, SKM, gula batu", desc_en: "Tubruk coffee, condensed milk, rock sugar", price: 20000, category: "kopi-teh", img: "https://i.ibb.co.com/d4Lkhdrc/Kopi-Susu-Ndeso.png" },
@@ -319,7 +391,7 @@
         { id: 25, name_id: "Caramel Macchiato", name_en: "Caramel Macchiato", desc_id: "Caramel macchiato", desc_en: "Caramel macchiato", price: 32000, category: "kopi-teh", img: "https://i.ibb.co.com/LzPRc1LP/Caramel-Machiatto.png" },
         { id: 26, name_id: "Vietnam Drip", name_en: "Vietnam Drip", desc_id: "Vietnam drip coffee", desc_en: "Vietnam drip coffee", price: 28000, category: "kopi-teh", img: "https://i.ibb.co.com/qYnqb7xx/Manual-Brew.png" },
         { id: 27, name_id: "V60 Manual Brew", name_en: "V60 Manual Brew", desc_id: "Pilihan Beans: Aceh Gayo, Halu Banana, Flores Bajawa, Bali, Merapi, Semendo", desc_en: "Bean choices: Aceh Gayo, Halu Banana, Flores Bajawa, Bali, Merapi, Semendo", price: 27000, category: "kopi-teh", img: "https://i.ibb.co.com/qYnqb7xx/Manual-Brew.png" },
-  
+
         // MINUMAN
         { id: 28, name_id: "Mbah Uti Dawet", name_en: "Mbah Uti Dawet", desc_id: "Cendol, Gula Dawet, Creamer", desc_en: "Cendol, palm sugar syrup, creamer", price: 23000, category: "minuman", img: "https://i.ibb.co.com/NdLctrhp/Dawet-Mbah-Uti.png" },
         { id: 29, name_id: "Es Teler", name_en: "Es Teler", desc_id: "Nangka, Alpukat, Nata de coco, Susu, Creamer", desc_en: "Jackfruit, avocado, nata de coco, milk, creamer", price: 40000, category: "minuman", img: "https://i.ibb.co.com/35v2x8Lp/Es-Teler.png" },
@@ -334,7 +406,7 @@
         { id: 38, name_id: "Cappuccino", name_en: "Cappuccino", desc_id: "Cappuccina yang lembut", desc_en: "Smooth cappuccino", price: 29000, category: "minuman", img: "https://i.ibb.co.com/VYSN4GwB/Cappuccino.png" },
         { id: 39, name_id: "Aneka Jus", name_en: "Aneka Jus", desc_id: "Mangga (25k) Semangka (23k) Alpukat (27k) Naga (23k)", desc_en: "Mango (25k) Watermelon (23k) Avocado (27k) Dragon fruit (23k)", price: 27000, category: "minuman", img: "https://i.ibb.co.com/YT7Ms9qM/Aneka-Jus.png" },
         { id: 40, name_id: "Soda & Blend", name_en: "Soda & Blend", desc_id: "Strawberry punch (26k) Soda Gembira (28k) Summer pineapple (26k) Kiwi Tropikal (23k)", desc_en: "Strawberry punch (26k) Happy soda (28k) Summer pineapple (26k) Tropical kiwi (23k)", price: 27000, category: "minuman", img: "https://i.ibb.co.com/PvY1yYF2/Soda-dan-Blend.png" },
-        
+
         // MAKANAN BERAT
         { id: 41, name_id: "Rawon Iga", name_en: "Rawon Iga", desc_id: "Nasi, Iga tulang mix daging, Telur Asin, Tauge, Sambal, Kerupuk Udang", desc_en: "Rice, beef ribs, salted egg, bean sprouts, chili paste, shrimp crackers", price: 65000, category: "makanan-berat", img: "https://i.ibb.co.com/Nnt0WGb3/Rawon.png" },
         { id: 42, name_id: "Ayam Kampung Tepi Sawah", name_en: "Ayam Kampung Tepi Sawah", desc_id: "Nasi daun jeruk, Lalapan, Sambal Bawang, daun singkong", desc_en: "Fragrant rice, free-range chicken, fresh veggies, chili, cassava leaves", price: 56000, category: "makanan-berat", img: "https://i.ibb.co.com/dw6M2m67/Ayam-Kampung.jpg" },
@@ -355,7 +427,7 @@
         { id: 57, name_id: "Wagyu SLice Sambal Matah", name_en: "Wagyu SLice Sambal Matah", desc_id: "Irisan daging wagyu yang empuk dan juicy, ditumis dengan bumbu gurih serta dipadukan dengan sambal matah yang segar, pedas, dan aromatik", desc_en: "Tender and juicy slices of wagyu beef, sautéed in savory seasonings and paired with fresh, spicy, and aromatic Balinese sambal matah.", price: 59000, category: "makanan-berat", img: "https://i.ibb.co.com/M5Rpscks/Cordon-Bleu.png" },
         { id: 58, name_id: "Penyetan Lele", name_en: "Penyetan Lele", desc_id: "Nasi uduk, Lele Goreng, Lalapan/Sayuran, Tempe Goreng, Tahu Goreng, Terong Goreng, sambal lamongan, sambal penyetan", desc_en: "Coconut milk rice, fried catfish, fresh raw vegetables, fried eggplant, fried tempe, fried tofu, Lamongan-style chili sauce, smashed chili sauce", price: 49000, category: "makanan-berat", img: "https://i.ibb.co.com/fYdRRR8X/Penyetan-2.png" },
         { id: 59, name_id: "Penyetan Nila", name_en: "Penyetaan Nila", desc_id: "Nasi uduk, Nila Goreng, Lalapan/Sayuran, Tempe Goreng, Tahu Goreng, Terong Goreng, sambal lamongan, sambal penyetan", desc_en: "Coconut milk rice, fried tilapia, fresh raw vegetables, fried eggplant, fried tempe, fried tofu, Lamongan-style chili sauce, smashed chili sauce", price: 49000, category: "makanan-berat", img: "https://i.ibb.co.com/p6km4Kjh/Penyetan-1.png" },
-        
+
         // SNACK
         { id: 60, name_id: "Chicken Wings", name_en: "Chicken Wings", desc_id: "Sayap ayam yang dimarinasi bumbu yang diracik sendiri", desc_en: "Marinated chicken wings with special house seasoning", price: 35000, category: "snack", img: "https://i.ibb.co.com/hF8CgGyj/Chicken-Wings.png" },
         { id: 61, name_id: "Bakwan Jagung", name_en: "Bakwan Jagung", desc_id: "Bakwan jagung renyah", desc_en: "Crispy corn fritters", price: 19000, category: "snack", img: "https://i.ibb.co.com/Xx3vbjX3/Bakwan-Jagung.png" },
@@ -372,7 +444,7 @@
         { id: 72, name_id: "Donat", name_en: "Donat", desc_id: "Topping gula halus", desc_en: "Powdered sugar topping", price: 33000, category: "snack", img: "https://i.ibb.co.com/532MynP/Donat.png" },
         { id: 73, name_id: "Telo Mekrok", name_en: "Telo Mekrok", desc_id: "Ubi jalar goreng", desc_en: "Fried sweet potato", price: 18000, category: "snack", img: "https://i.ibb.co.com/N26q40Ft/Telo.png" },
         { id: 74, name_id: "Ubi Lumer", name_en: "Ubi Lumer", desc_id: "Ubi lembut", desc_en: "Soft sweet potato", price: 18000, category: "snack", img: "https://i.ibb.co.com/JjZnfNKv/Ubi-Lumer.png" },
-    
+
         // CAKE & PASTRY
         { id: 75, name_id: "Rainbow Cake", name_en: "Rainbow Cake", desc_id: "Cantik warna warni cake yang lembut", desc_en: "Beautiful colorful soft cake", price: 39000, category: "cake-pastry", img: "https://i.ibb.co.com/Kp6Qx0jb/Rainbow.png" },
         { id: 76, name_id: "All Macaron", name_en: "All Macaron", desc_id: "Crunchy diluar lembut di dalam", desc_en: "Crunchy outside, soft inside", price: 21000, category: "cake-pastry", img: "https://i.ibb.co.com/wFdP1rDL/All-Macaron.png" },
@@ -395,29 +467,47 @@
             grid.innerHTML = '<div style="text-align:center; grid-column:1/-1; padding:40px;">No items found in this category.</div>';
             return;
         }
-        filtered.forEach(item => {
+        filtered.forEach((item, idx) => {
             const card = document.createElement("div");
             card.className = "menu-card";
-            let imgUrl = item.img || "";
-            if (imgUrl && imgUrl.includes('drive.google.com')) imgUrl = convertGoogleDriveLink(imgUrl);
+            const originalUrl = item.img || "";
+            const optimizedUrl = optimizeMenuImage(originalUrl);
             const displayName = currentLang === 'en' ? (item.name_en || item.name_id) : item.name_id;
             const displayDesc = currentLang === 'en' ? (item.desc_en || item.desc_id) : item.desc_id;
-            const imgHtml = imgUrl ? 
-                `<img src="${imgUrl}" alt="${displayName}" onerror="handleImageError(this)">` : 
+
+            // Native lazy loading — gambar hanya dimuat saat mendekati viewport.
+            // Gambar index 0-5 diberi loading="eager" + fetchpriority="high" agar LCP cepat.
+            const isFirstRow = idx < 6;
+            const loadingAttr = isFirstRow ? 'eager' : 'lazy';
+            const priorityAttr = isFirstRow ? 'fetchpriority="high"' : 'fetchpriority="low"';
+
+            const imgHtml = optimizedUrl ?
+                `<img src="${optimizedUrl}"
+                      alt="${escapeHtml(displayName)}"
+                      width="${MENU_IMG_WIDTH}"
+                      height="${Math.round(MENU_IMG_WIDTH * 0.7)}"
+                      loading="${loadingAttr}"
+                      decoding="async"
+                      ${priorityAttr}
+                      data-original="${originalUrl}"
+                      onerror="handleImageError(this)">` :
                 `<div style="width:100%;height:200px;background:#f5ede2;display:flex;align-items:center;justify-content:center;color:#c17a4b;"><i class="fas fa-utensils" style="font-size:40px;opacity:0.5"></i><br><span style="font-size:12px">No Image</span></div>`;
+
             card.innerHTML = `${imgHtml}<div class="card-content"><div class="menu-name">${escapeHtml(displayName)}</div><div class="menu-desc">${escapeHtml(displayDesc)}</div><div class="menu-price">Rp ${item.price.toLocaleString()}</div></div>`;
             grid.appendChild(card);
         });
     }
-    
+
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
+        return str.replace(/[&<>"']/g, function(m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
+            if (m === '"') return '&quot;';
+            if (m === "'") return '&#39;';
             return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) { return c; });
+        });
     }
 
     const reviewsData = {
@@ -436,7 +526,7 @@
             { name: "Sapto Anggoro", rating: 5, comment: "Langganan di sini, terutama sabtu minggu ada jenang bubur tradisional. Sayur daun pepaya dan pindang klotok goreng enak. Wedang Mbah Uti wajib dicoba." }
         ]
     };
-    
+
     function renderReviews() {
         const container = document.getElementById("reviewsContainer");
         if (!container) return;
@@ -457,9 +547,9 @@
             hero_title: "Traditional Restaurant<br>Homeland Flavors",
             hero_desc: "Pawon Mbah Gito is a home to return to—a place to relive childhood memories at grandmother's house.",
             hero_btn_menu: "View Menu", hero_btn_reserve: "Reserve Now",
-            menu_title: "Our Signature Menu", cat_all: "All", cat_wedangan: "Wedangan", cat_kopiteh: "Coffee & Tea", 
+            menu_title: "Our Signature Menu", cat_all: "All", cat_wedangan: "Wedangan", cat_kopiteh: "Coffee & Tea",
             cat_makanan_berat: "Main Course", cat_snack: "Snacks", cat_minuman: "Beverages", cat_cake_pastry: "Cake & Pastry",
-            reserve_title: "Reserve a Table", form_name: "Your Name", form_phone: "Phone Number", 
+            reserve_title: "Reserve a Table", form_name: "Your Name", form_phone: "Phone Number",
             form_guests: "Number of Guests", form_submit: "Request Reservation",
             wa_btn: "Chat via WhatsApp", hours_title: "Opening Hours", location_title: "Address",
             reviews_title: "Customer Reviews", open_map: "📍 Open Google Maps for directions →",
@@ -504,7 +594,7 @@
                 }
             }
         });
-        
+
         const vehicleSelect = document.getElementById("resVehicle");
         const eventSelect = document.getElementById("resEvent");
         if (vehicleSelect) {
@@ -525,7 +615,7 @@
             const key = el.getAttribute('data-i18n-placeholder');
             if (translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
         });
-        
+
         const catBtns = document.querySelectorAll('.cat-btn');
         catBtns.forEach(btn => {
             const catKey = btn.getAttribute('data-cat');
@@ -547,7 +637,7 @@
     }
 
     const WA_TARGET_NUMBER = "6282134897557";
-    
+
     function showToast(message, isError = false) {
         const toast = document.getElementById("toastMsg");
         if (!toast) return;
@@ -562,9 +652,9 @@
         if (!phone.trim()) { showToast(currentLang === 'en' ? "Please enter your phone number" : "Masukkan nomor telepon Anda", true); return false; }
         if (!dateTime) { showToast(currentLang === 'en' ? "Please select date & time" : "Pilih tanggal dan waktu", true); return false; }
         const guestNum = parseInt(guests);
-        if (!guests || guestNum < 10) { 
-            showToast(currentLang === 'en' ? "Minimum guests is 10 people" : "Minimal tamu adalah 10 orang", true); 
-            return false; 
+        if (!guests || guestNum < 10) {
+            showToast(currentLang === 'en' ? "Minimum guests is 10 people" : "Minimal tamu adalah 10 orang", true);
+            return false;
         }
         let formattedDateTime = new Date(dateTime).toLocaleString(currentLang === 'en' ? 'en-GB' : 'id-ID', {
             day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -572,7 +662,7 @@
         const guestText = currentLang === 'en' ? `${guests} People` : `${guests} Orang`;
         const vehicleText = vehicle || (currentLang === 'en' ? 'Not specified' : 'Tidak diisi');
         const eventText = eventType || (currentLang === 'en' ? 'Not specified' : 'Tidak diisi');
-        let message = currentLang === 'en' ? 
+        let message = currentLang === 'en' ?
             `🍽️ *RESERVATION REQUEST* 🍽️\n\nName: ${name}\nPhone: ${phone}\nDate & Time: ${formattedDateTime}\nGuest: ${guestText}\nVehicle: ${vehicleText}\nEvent: ${eventText}\n\nSent from Pawon Mbah Gito Website` :
             `🍽️ *PERMINTAAN RESERVASI* 🍽️\n\nNama: ${name}\nTelp: ${phone}\nTanggal & Jam: ${formattedDateTime}\nJumlah Tamu: ${guestText}\nKendaraan: ${vehicleText}\nAcara: ${eventText}\n\nDikirim dari website Pawon Mbah Gito`;
         window.open(`https://wa.me/${WA_TARGET_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
@@ -631,6 +721,7 @@
         });
     }
 
+    // Smooth scroll nav links
     document.querySelectorAll('.nav-links a').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -641,9 +732,17 @@
     });
 
     function init() {
+        // Hero background — dioptimasi via wsrv.nl
         const heroSection = document.querySelector('.hero');
-        if (heroSection && headerBackgroundImage) {
-            heroSection.style.backgroundImage = `url('${headerBackgroundImage}')`;
+        if (heroSection && headerBackgroundImageRaw) {
+            const optimizedHero = optimizeHeroImage(headerBackgroundImageRaw);
+            heroSection.style.backgroundImage = `url('${optimizedHero}')`;
+            // Preload hero agar render cepat
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = optimizedHero;
+            document.head.appendChild(link);
         }
         setLanguage('en');
         renderMenuByCategory('all');
