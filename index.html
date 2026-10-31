@@ -9,11 +9,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -36,493 +32,105 @@
             --shadow: rgba(0,0,0,0.08);
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
         .navbar {
-            position: sticky;
-            top: 0;
+            position: sticky; top: 0;
             background: rgba(254, 243, 226, 0.96);
             backdrop-filter: blur(6px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            z-index: 1000;
-            padding: 16px 0;
+            z-index: 1000; padding: 16px 0;
         }
 
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
 
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--brown-dark);
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .logo i {
-            font-size: 2rem;
-            color: var(--terracotta);
-        }
+        .logo { font-size: 1.8rem; font-weight: 700; color: var(--brown-dark); letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px; }
+        .logo i { font-size: 2rem; color: var(--terracotta); }
+        .logo span { color: var(--terracotta); }
 
-        .logo span {
-            color: var(--terracotta);
-        }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a { text-decoration: none; font-weight: 600; color: var(--brown-dark); transition: 0.2s; font-size: 1rem; }
+        .nav-links a:hover { color: var(--terracotta); }
 
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            list-style: none;
-        }
+        .lang-toggle { background: var(--brown-wood); border: none; color: white; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-weight: 600; font-family: inherit; transition: 0.2s; }
+        .lang-toggle:hover { background: var(--terracotta); }
 
-        .nav-links a {
-            text-decoration: none;
-            font-weight: 600;
-            color: var(--brown-dark);
-            transition: 0.2s;
-            font-size: 1rem;
-        }
+        .hero { position: relative; min-height: 85vh; display: flex; align-items: center; text-align: center; color: white; background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(90, 62, 43, 0.1); z-index: 1; }
+        .hero-content { position: relative; z-index: 2; width: 100%; }
+        .hero-content h1 { font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); }
+        .hero-content p { font-size: 1.3rem; max-width: 650px; margin: 0 auto 2rem; font-weight: 400; text-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
 
-        .nav-links a:hover {
-            color: var(--terracotta);
-        }
+        .btn-group { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 12px 32px; border-radius: 40px; font-weight: 700; text-decoration: none; transition: 0.25s ease; display: inline-block; font-size: 1rem; }
+        .btn-primary { background: var(--terracotta); color: white; border: none; }
+        .btn-primary:hover { background: #a55d34; transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0,0,0.15); }
+        .btn-outline { background: transparent; border: 2px solid white; color: white; }
+        .btn-outline:hover { background: white; color: var(--brown-dark); transform: translateY(-3px); }
 
-        .lang-toggle {
-            background: var(--brown-wood);
-            border: none;
-            color: white;
-            padding: 8px 18px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 600;
-            font-family: inherit;
-            transition: 0.2s;
-        }
+        .section-title { font-size: 2.5rem; text-align: center; margin-bottom: 2rem; position: relative; display: inline-block; width: 100%; }
+        .section-title:after { content: ''; width: 80px; height: 3px; background: var(--terracotta); display: block; margin: 12px auto 0; border-radius: 4px; }
 
-        .lang-toggle:hover {
-            background: var(--terracotta);
-        }
+        .category-tabs { display: flex; justify-content: center; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; }
+        .cat-btn { background: #e9dccc; border: none; padding: 8px 20px; font-weight: 600; border-radius: 40px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; color: #4a2f1b; }
+        .cat-btn.active, .cat-btn:hover { background: var(--brown-wood); color: white; }
 
-        /* HERO SECTION - Background diatur via JS (seperti menu) */
-        .hero {
-            position: relative;
-            min-height: 85vh;
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: white;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        
-        /* Transparent brown overlay 10% for better text readability */
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(90, 62, 43, 0.1); /* 30% coklat transparan */
-            z-index: 1;
-        }
-        
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-        }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; margin-top: 20px; }
+        .menu-card { background: white; border-radius: 28px; overflow: hidden; box-shadow: 0 8px 20px var(--shadow); transition: all 0.3s ease; }
+        .menu-card:hover { transform: translateY(-8px); box-shadow: 0 18px 30px rgba(0,0,0,0.12); }
+        .menu-card img { width: 100%; height: 200px; object-fit: cover; background-color: #f0e6d6; display: block; }
+        .card-content { padding: 18px; }
+        .menu-name { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+        .menu-desc { font-size: 0.85rem; color: #6b4c34; margin: 8px 0; line-height: 1.4; }
+        .menu-price { font-weight: 800; color: var(--terracotta); font-size: 1.2rem; margin-top: 10px; }
+        .package-badge { background: var(--golden); color: #4a2f1b; font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-bottom: 8px; }
 
-        .hero-content h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-        }
+        .reservation-section { background: #F6ECD8; padding: 70px 0; }
+        .reserve-grid { display: flex; flex-wrap: wrap; gap: 40px; }
+        .form-box { flex: 1.2; background: white; padding: 30px; border-radius: 32px; box-shadow: 0 5px 18px rgba(0,0,0,0.05); }
+        .info-box { flex: 0.9; background: white; padding: 30px; border-radius: 32px; }
 
-        .hero-content p {
-            font-size: 1.3rem;
-            max-width: 650px;
-            margin: 0 auto 2rem;
-            font-weight: 400;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
-        }
+        .form-group { margin-bottom: 18px; }
+        input, select, textarea { width: 100%; padding: 12px 16px; border: 1px solid #e0cdb5; border-radius: 50px; font-family: inherit; background: #fffaf2; }
+        select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B5A2B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 16px center; background-size: 16px; }
 
-        .btn-group {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 
-        .btn {
-            padding: 12px 32px;
-            border-radius: 40px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: 0.25s ease;
-            display: inline-block;
-            font-size: 1rem;
-        }
+        .whatsapp-btn { background: #25D366; color: white; border: none; padding: 14px 20px; border-radius: 60px; font-weight: bold; display: inline-flex; align-items: center; gap: 12px; cursor: pointer; margin-top: 18px; width: 100%; justify-content: center; font-size: 1rem; text-decoration: none; }
+        .whatsapp-btn:hover { background: #1da15a; }
 
-        .btn-primary {
-            background: var(--terracotta);
-            color: white;
-            border: none;
-        }
+        .hours p { margin: 12px 0; }
+        .info-icon { margin-right: 8px; color: var(--terracotta); }
 
-        .btn-primary:hover {
-            background: #a55d34;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-        }
+        .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; margin: 40px 0; }
+        .review-card { background: white; padding: 22px; border-radius: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .stars i { color: #f5b342; margin-right: 2px; }
+        .review-name { font-weight: 700; margin-top: 12px; }
+        .address-detail { font-size: 0.9rem; line-height: 1.5; margin-top: 8px; color: #4a3927; }
 
-        .btn-outline {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-        }
+        .map-container { margin: 40px 0; border-radius: 28px; overflow: hidden; box-shadow: 0 6px 14px rgba(0,0,0,0.1); }
+        .map-link { display: inline-block; margin-top: 12px; color: var(--terracotta); font-weight: 600; text-decoration: none; }
+        .map-link:hover { text-decoration: underline; }
 
-        .btn-outline:hover {
-            background: white;
-            color: var(--brown-dark);
-            transform: translateY(-3px);
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-        .section-title:after {
-            content: '';
-            width: 80px;
-            height: 3px;
-            background: var(--terracotta);
-            display: block;
-            margin: 12px auto 0;
-            border-radius: 4px;
-        }
-
-        .category-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
-        }
-
-        .cat-btn {
-            background: #e9dccc;
-            border: none;
-            padding: 8px 20px;
-            font-weight: 600;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: 0.2s;
-            color: #4a2f1b;
-        }
-
-        .cat-btn.active, .cat-btn:hover {
-            background: var(--brown-wood);
-            color: white;
-        }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 32px;
-            margin-top: 20px;
-        }
-
-        .menu-card {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 8px 20px var(--shadow);
-            transition: all 0.3s ease;
-        }
-
-        .menu-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 18px 30px rgba(0,0,0,0.12);
-        }
-
-        .menu-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background-color: #f0e6d6;
-            display: block;
-        }
-
-        .card-content {
-            padding: 18px;
-        }
-
-        .menu-name {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .menu-desc {
-            font-size: 0.85rem;
-            color: #6b4c34;
-            margin: 8px 0;
-            line-height: 1.4;
-        }
-        
-        .menu-price {
-            font-weight: 800;
-            color: var(--terracotta);
-            font-size: 1.2rem;
-            margin-top: 10px;
-        }
-        
-        .package-badge {
-            background: var(--golden);
-            color: #4a2f1b;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-
-        .reservation-section {
-            background: #F6ECD8;
-            padding: 70px 0;
-        }
-
-        .reserve-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-        }
-
-        .form-box {
-            flex: 1.2;
-            background: white;
-            padding: 30px;
-            border-radius: 32px;
-            box-shadow: 0 5px 18px rgba(0,0,0,0.05);
-        }
-
-        .info-box {
-            flex: 0.9;
-            background: white;
-            padding: 30px;
-            border-radius: 32px;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e0cdb5;
-            border-radius: 50px;
-            font-family: inherit;
-            background: #fffaf2;
-        }
-
-        select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B5A2B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            background-size: 16px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-        }
-
-        .whatsapp-btn {
-            background: #25D366;
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            border-radius: 60px;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            margin-top: 18px;
-            width: 100%;
-            justify-content: center;
-            font-size: 1rem;
-            text-decoration: none;
-        }
-        
-        .whatsapp-btn:hover {
-            background: #1da15a;
-        }
-
-        .hours p {
-            margin: 12px 0;
-        }
-        
-        .info-icon {
-            margin-right: 8px;
-            color: var(--terracotta);
-        }
-
-        .reviews-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 28px;
-            margin: 40px 0;
-        }
-
-        .review-card {
-            background: white;
-            padding: 22px;
-            border-radius: 28px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .stars i {
-            color: #f5b342;
-            margin-right: 2px;
-        }
-
-        .review-name {
-            font-weight: 700;
-            margin-top: 12px;
-        }
-        
-        .address-detail {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-top: 8px;
-            color: #4a3927;
-        }
-
-        .map-container {
-            margin: 40px 0;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.1);
-        }
-        
-        .map-link {
-            display: inline-block;
-            margin-top: 12px;
-            color: var(--terracotta);
-            font-weight: 600;
-            text-decoration: none;
-        }
-        
-        .map-link:hover {
-            text-decoration: underline;
-        }
-
-        footer {
-            background: #2E241D;
-            color: #e7dac5;
-            text-align: center;
-            padding: 28px;
-            margin-top: 20px;
-        }
+        footer { background: #2E241D; color: #e7dac5; text-align: center; padding: 28px; margin-top: 20px; }
 
         @media (max-width: 780px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 16px;
-            }
-            .hero-content h1 {
-                font-size: 2.4rem;
-            }
-            .section-title {
-                font-size: 2rem;
-            }
-            .btn-group {
-                gap: 12px;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-            .cat-btn {
-                padding: 6px 14px;
-                font-size: 0.8rem;
-            }
-        }
-        
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        section {
-            animation: fadeUp 0.5s ease-out;
+            .nav-container { flex-direction: column; gap: 16px; }
+            .hero-content h1 { font-size: 2.4rem; }
+            .section-title { font-size: 2rem; }
+            .btn-group { gap: 12px; }
+            .form-row { grid-template-columns: 1fr; gap: 12px; }
+            .cat-btn { padding: 6px 14px; font-size: 0.8rem; }
         }
 
-        .toast-msg {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2c2c2c;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: 500;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        .toast-msg.show {
-            opacity: 1;
-        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        section { animation: fadeUp 0.5s ease-out; }
 
-        /* Helper text untuk datetime */
-        .datetime-helper {
-            font-size: 0.7rem;
-            color: #a55d34;
-            margin-top: 5px;
-            display: block;
-            font-weight: 500;
-        }
-        
-        /* Pesan minimal guest */
-        .guest-helper {
-            font-size: 0.7rem;
-            color: #a55d34;
-            margin-top: 5px;
-            display: block;
-            font-weight: 500;
-        }
+        .toast-msg { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #2c2c2c; color: white; padding: 12px 24px; border-radius: 50px; font-weight: 500; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .toast-msg.show { opacity: 1; }
+
+        .datetime-helper { font-size: 0.7rem; color: #a55d34; margin-top: 5px; display: block; font-weight: 500; }
+        .guest-helper { font-size: 0.7rem; color: #a55d34; margin-top: 5px; display: block; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -621,7 +229,8 @@
                     <h3><i class="fas fa-clock info-icon"></i> <span data-i18n="hours_title">Jam Buka</span></h3>
                     <div class="hours">
                         <p><strong><i class="fas fa-calendar-week info-icon"></i> Weekdays (Senin-Jum'at)</strong><br> 07.00 AM - 22.00 PM</p>
-                        <p><strong><i class="fas fa-calendar-weekend info-icon"></i> Weekend (Sabtu-Minggu)</strong><br> 07.00 AM - 21.00 PM</p>
+                        <!-- BUG FIXED: fa-calendar-weekend -> fa-calendar-day -->
+                        <p><strong><i class="fas fa-calendar-day info-icon"></i> Weekend (Sabtu-Minggu)</strong><br> 07.00 AM - 21.00 PM</p>
                         <hr style="margin: 15px 0; border-color: #e0cdb5;">
                         <p><strong><i class="fas fa-map-marker-alt info-icon"></i> <span data-i18n="location_title">Alamat</span></strong><br>
                         <span class="address-detail">Jl. Pasir Luhur Jl. Mendiro Raya, RT.3/ RW26, Area Sawah, Sukoharjo, Kec. Ngaglik, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55581</span></p>
@@ -652,11 +261,8 @@
 <div id="toastMsg" class="toast-msg"></div>
 
 <script>
-    // ================= KONFIGURASI GAMBAR BACKGROUND HEADER (seperti menu) =================
-    // Ganti URL di bawah ini untuk mengubah gambar background Hero Section
     const headerBackgroundImage = 'https://i.ibb.co.com/DHQTS4BZ/PMGB.png';
     
-    // ================= FUNGSI KONVERSI GOOGLE DRIVE LINK =================
     function convertGoogleDriveLink(url) {
         if (!url || url === "") return "";
         if (url.includes('drive.google.com')) {
@@ -667,9 +273,7 @@
                 match = url.match(/id=([^&]+)/);
                 if (match) fileId = match[1];
             }
-            if (fileId) {
-                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-            }
+            if (fileId) return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
         }
         return url;
     }
@@ -680,12 +284,9 @@
         const placeholder = document.createElement('div');
         placeholder.style.cssText = 'width:100%;height:200px;background:#f5ede2;display:flex;align-items:center;justify-content:center;color:#c17a4b;font-size:14px;';
         placeholder.innerHTML = '<i class="fas fa-image" style="font-size:40px;opacity:0.5"></i><br><span style="font-size:12px">Gambar tidak tersedia</span>';
-        if (parent && img.parentNode) {
-            img.parentNode.replaceChild(placeholder, img);
-        }
+        if (parent && img.parentNode) img.parentNode.replaceChild(placeholder, img);
     }
 
-    // ================= DATA MENU LENGKAP BILINGUAL =================
     const menuItemsRaw = [
         // WEDANGAN
         { id: 1, name_id: "Wedang Mbah Gito", name_en: "Wedang Mbah Gito", desc_id: "Jeruk nipis, jeruk peras, jahe, sereh, cengkeh, kapulaga, kolang-kaling, kayu manis, gula batu & gula aren", desc_en: "Lime, orange, ginger, lemongrass, cloves, cardamom, palm fruit, cinnamon, rock sugar & palm sugar", price: 25000, category: "wedangan", img: "https://i.ibb.co.com/Q7FKdVj2/Minuman-Herbal-Jeruk-Sereh-Rustic-Celestial.png" },
@@ -693,7 +294,7 @@
         { id: 3, name_id: "Cokelat Si Mbah", name_en: "Cokelat Si Mbah", desc_id: "Perpaduan Cokelat dan jahe khas Pawon Mbah Gito", desc_en: "Traditional Ginger (aromatic chocolate) special blend", price: 33000, category: "wedangan", img: "https://i.ibb.co.com/n8zw6rqK/Cokalet.png" },
         { id: 4, name_id: "Wedang Jahe", name_en: "Wedang Jahe", desc_id: "Jahe asli hangat", desc_en: "Warm authentic ginger", price: 17000, category: "wedangan", img: "https://i.ibb.co.com/cSWbkyRZ/Wedang-Jahe.png" },
         { id: 5, name_id: "Wedang Sereh", name_en: "Wedang Sereh", desc_id: "Sereh segar", desc_en: "Fresh lemongrass", price: 9000, category: "wedangan", img: "https://i.ibb.co.com/v6g2RJzH/Wedang-Sereh.png" },
-        { id: 6, name_id: "Wedang Jahe Sereh", name_en: "Wedang Jahe Sereh", desc_id: "Paduan jahe & sereh", desc_en: "Ginger & lemongrass blend", price: 18000, category: "wedangan", img: "https://i.ibb.co.com/cSwX01PK/Wedang-Jahe-Sereh.png" },
+        { id: 6, name_id: "Wedang Jahe Sereh", name_en: "Wedang Jahe Sereh", desc_id: "Paduan jahe & sereh", desc_en: "Ginger & lemongrass blend", price: 18000, category: "wedangan", img: "https://i.ibb.co.com/cSWX01PK/Wedang-Jahe-Sereh.png" },
         { id: 7, name_id: "Wedang Susu Jahe", name_en: "Wedang Susu Jahe", desc_id: "Jahe dan SKM creamy", desc_en: "Ginger with creamy sweetened condensed milk", price: 18000, category: "wedangan", img: "https://i.ibb.co.com/qL8xg723/Wedang-Susu-Jahe.png" },
         { id: 8, name_id: "Wedang Kenangan (Sharing)", name_en: "Wedang Kenangan (Sharing)", desc_id: "Jeruk nipis, sereh, cengkeh, kunyit, jahe, kayu manis, kayu secang, pala", desc_en: "Lime, lemongrass, clove, turmeric, ginger, cinnamon, secang wood, nutmeg", price: 53000, category: "wedangan", img: "https://i.ibb.co.com/bgSdBK2z/Wedang-Kenangan.png" },
         { id: 9, name_id: "Wedang Temu Kangen (Sharing)", name_en: "Wedang Temu Kangen (Sharing)", desc_id: "Jeruk nipis, sereh, cengkeh, kunyit, jahe, kayu manis, kayu secang, pala", desc_en: "Lime, lemongrass, clove, turmeric, ginger, cinnamon, secang wood, nutmeg", price: 53000, category: "wedangan", img: "https://i.ibb.co.com/spPGVwnc/Wedang-Temu-Kangen.png" },
@@ -709,7 +310,8 @@
         { id: 17, name_id: "Teh Jahe Sereh", name_en: "Teh Jahe Sereh", desc_id: "Teh jahe & sereh hangat", desc_en: "Warm ginger lemongrass tea", price: 17000, category: "kopi-teh", img: "https://i.ibb.co.com/YFYLR5qK/Teh-Jahe-Sereh.png" },
         { id: 18, name_id: "Teh Tarik", name_en: "Teh Tarik", desc_id: "Teh tarik panas / es", desc_en: "Pulled tea hot / iced", price: 22000, category: "kopi-teh", img: "https://i.ibb.co.com/bjB5JT7x/Teh-Tarik.png" },
         { id: 19, name_id: "Teh Kamplung", name_en: "Teh Kamplung", desc_id: "Teh dan Jeruk Nipis (Panas 13k / Es 12k)", desc_en: "Tea with lime (Hot 13k / Iced 12k)", price: 12000, category: "kopi-teh", img: "https://i.ibb.co.com/ccVP16Cz/Kamplung.png" },
-        { id: 20, name_id: "Kopi Ndeso", name_en: "Kopi Ndeso", desc_id: "Kopi tubruk, gula batu/gula cair (Es)", desc_en: "Traditional tubruk coffee, rock sugar/liquid sugar (Iced)", price: 19000, category: "kopi-teh", img: "https://i.ibb.co.com/5gyL3vY4/Kopi-Ndeso.png" 
+        // BUG FIXED: tambahkan "}," penutup objek id:20 (sebelumnya hilang → syntax error)
+        { id: 20, name_id: "Kopi Ndeso", name_en: "Kopi Ndeso", desc_id: "Kopi tubruk, gula batu/gula cair (Es)", desc_en: "Traditional tubruk coffee, rock sugar/liquid sugar (Iced)", price: 19000, category: "kopi-teh", img: "https://i.ibb.co.com/5gyL3vY4/Kopi-Ndeso.png" },
         { id: 21, name_id: "Kopi Susu Mbah Gito", name_en: "Kopi Susu Mbah Gito", desc_id: "Kopi tubruk, SKM, gula aren", desc_en: "Tubruk coffee, condensed milk, palm sugar", price: 20000, category: "kopi-teh", img: "https://i.ibb.co.com/8LsGKrxB/Kopi-Susu-Mbah-Gito.png" },
         { id: 22, name_id: "Kopi Susu Ndeso", name_en: "Kopi Susu Ndeso", desc_id: "Kopi tubruk, SKM, gula batu", desc_en: "Tubruk coffee, condensed milk, rock sugar", price: 20000, category: "kopi-teh", img: "https://i.ibb.co.com/d4Lkhdrc/Kopi-Susu-Ndeso.png" },
         { id: 23, name_id: "Kopi Mbah Gito", name_en: "Kopi Mbah Gito", desc_id: "Kopi Tubruk Gula Aren", desc_en: "Tubruk coffee with palm sugar", price: 19000, category: "kopi-teh", img: "https://i.ibb.co.com/chM8z9yg/Kopi-Mbah-Gio.png" },
@@ -779,7 +381,6 @@
         { id: 79, name_id: "Blueberry Cheese Cake", name_en: "Blueberry Cheese Cake", desc_id: "Blueberry lembut berpadu dengan lembutnya keju", desc_en: "Soft blueberry combines with creamy cheese", price: 38000, category: "cake-pastry", img: "https://i.ibb.co.com/7NVcpnx2/Blueberry.png" },
         { id: 80, name_id: "Strawberry Cheese Cake", name_en: "Strawberry Cheese Cake", desc_id: "Strawberry dan keju berpadu", desc_en: "Strawberry and cheese combined", price: 38000, category: "cake-pastry", img: "https://i.ibb.co.com/s7KVq3d/Strawberry.png" },
         { id: 81, name_id: "Red Velvet Cheese Cake", name_en: "Red Velvet Cheese Cake", desc_id: "Red velvet lembut juga kejunya", desc_en: "Soft red velvet and cheese combined", price: 40000, category: "cake-pastry", img: "https://i.ibb.co.com/35m1bN4Q/Red-Velvet.png" },
-
     ];
 
     let activeCategory = "all";
@@ -809,7 +410,6 @@
         });
     }
     
-    // Simple escape to prevent XSS
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
@@ -817,12 +417,9 @@
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
-        });
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) { return c; });
     }
 
-    // Data ulasan bilingual
     const reviewsData = {
         en: [
             { name: "Ricky", rating: 5, comment: "A comfortable place for Javanese traditional food with a strong local atmosphere. The facilities are complete with various seating options. The fried chicken with serundeng and lemongrass-wrapped chicken satay were delicious. Reasonable prices compared to food quality, facilities, and service." },
@@ -854,7 +451,6 @@
         });
     }
 
-    // Terjemahan
     const translations = {
         en: {
             nav_home: "Home", nav_menu: "Menu", nav_reserve: "Reserve", nav_reviews: "Reviews",
@@ -950,7 +546,6 @@
         renderReviews();
     }
 
-    // ========== FUNGSI KIRIM WA ==========
     const WA_TARGET_NUMBER = "6282134897557";
     
     function showToast(message, isError = false) {
@@ -985,7 +580,6 @@
         return true;
     }
 
-    // Event handler form
     const reserveForm = document.getElementById("reserveForm");
     if (reserveForm) {
         reserveForm.addEventListener("submit", (e) => {
@@ -1047,7 +641,6 @@
     });
 
     function init() {
-        // Set background header dari variabel (seperti gambar menu)
         const heroSection = document.querySelector('.hero');
         if (heroSection && headerBackgroundImage) {
             heroSection.style.backgroundImage = `url('${headerBackgroundImage}')`;
